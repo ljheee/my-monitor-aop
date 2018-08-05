@@ -1,0 +1,76 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:classpath="http://www.springframework.org/schema/c" xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+            http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+            http://www.springframework.org/schema/context
+            http://www.springframework.org/schema/context/spring-context-3.0.xsd
+            http://www.springframework.org/schema/mvc
+            http://www.springframework.org/schema/mvc/spring-mvc.xsd http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd">
+
+    <!-- 启动SpringMVC的注解功能，它会自动注册HandlerMapping、HandlerAdapter、ExceptionResolver的相-->
+    <mvc:annotation-driven />
+    <mvc:default-servlet-handler />
+
+    <!--扫描,Controller类-->
+    <context:component-scan base-package="com.ljheee.tk"/>
+
+    <context:property-placeholder location="classpath:jdbc.properties"/>
+
+
+    <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close"
+          p:driverClass="${driver}"
+          p:jdbcUrl="${url}"
+          p:user="${username}"
+          p:password="${password}"
+          p:idleConnectionTestPeriod="${idleConnectionTestPeriod}"
+          p:maxIdleTime="${maxIdleTime}"
+          p:acquireIncrement="${acquireIncrement}"
+          p:initialPoolSize="${initialPoolSize}"
+          p:maxPoolSize="${maxPoolSize}"
+          p:minPoolSize="${minPoolSize}"
+          p:autoCommitOnClose="${autoCommitOnClose}"
+          p:checkoutTimeout="${checkoutTimeout}"
+          p:acquireRetryAttempts="${acquireRetryAttempts}"
+          p:preferredTestQuery="SELECT 1"
+          p:maxConnectionAge="3000"/>
+
+    <!-- mybatis文件配置，扫描所有mapper文件 -->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="dataSource"/>
+        <property name="configLocation" value="classpath:mybatis-config.xml"/>
+
+        <property name="typeAliasesPackage" value="com.ljheee.tk.entity"/>
+
+        <property name="mapperLocations" value="classpath:mapper/*.xml"/>
+    </bean>
+
+
+    <!--Tip: 根本原因在于当前引用的类比mapper更早加载了,通用mapper 扫描包路径配置要放 mybatis前面-->
+    <!--Bug：无法无法获取实体类，对应的表名  https://github.com/abel533/MyBatis-Spring-Boot/issues/18   -->
+    <!--Bug：java.lang.InstantiationException: tk.mybatis.mapper.provider.SpecialProvider
+            org.apache.ibatis.builder.BuilderException: Error invoking SqlProvider method (tk.mybatis.mapper.provider.base.BaseSelectProvider.dynamicSQL). Cause: java.lang.InstantiationException: tk.mybatis.mapper.provider.base.BaseSelectProvider
+            https://github.com/abel533/MyBatis-Spring-Boot/issues/34
+        -->
+    <!--通用mapper 扫描包路径  配置-->
+    <bean class="tk.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="com.ljheee.tk.mapper"/>
+    </bean>
+
+    <!-- spring与mybatis整合配置，扫描所有dao,指定的映射器类是接口,接口方法可以用注解来指定 SQL 语句,但是 MyBatis 的映射器 XML 文件也可以用。 -->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer"
+          p:basePackage="com.ljheee.tk.mapper"
+          p:sqlSessionFactoryBeanName="sqlSessionFactory"/>
+
+
+
+    <!-- 类增强代理（而不是基于java的接口代理） -->
+    <aop:aspectj-autoproxy proxy-target-class="true"/>
+
+
+
+
+</beans>

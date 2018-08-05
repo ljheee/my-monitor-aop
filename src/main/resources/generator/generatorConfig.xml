@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+
+<!DOCTYPE generatorConfiguration
+        PUBLIC "-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN"
+        "http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd">
+
+<generatorConfiguration>
+
+    <!--generatorConfig.xml文件，命名必须是这个名字-->
+
+    <!--该文件，需要在pom.xml文件 <plugins> 下引入mybatis-generator-maven-plugin-->
+
+    <!--数据库连接的信息-->
+    <properties resource="jdbc.properties"/>
+
+
+    <!--MyBatis3Simple表示不生成Example类，flat表示一张表生成一个POJO-->
+    <context id="Mysql" targetRuntime="MyBatis3Simple" defaultModelType="flat">
+        <property name="beginningDelimiter" value="`"/>
+        <property name="endingDelimiter" value="`"/>
+
+        <plugin type="tk.mybatis.mapper.generator.MapperPlugin">
+            <property name="mappers" value="tk.mybatis.mapper.common.Mapper"/>
+            <property name="caseSensitive" value="true"/>
+        </plugin>
+
+        <jdbcConnection driverClass="${driver}"
+                        connectionURL="${url}"
+                        userId="${username}"
+                        password="${password}">
+        </jdbcConnection>
+
+
+        <!--POJO 存放路径 -->
+        <javaModelGenerator targetPackage="com.ljheee.tk.entity" targetProject="src/main/java"/>
+
+        <!--Mapper.xml存放路径 -->
+        <sqlMapGenerator targetPackage="mapper" targetProject="src/main/resources"/>
+
+        <!--PojoMapper.java接口 存放路径-->
+        <javaClientGenerator targetPackage="com.ljheee.tk.mapper" targetProject="src/main/java"
+                             type="XMLMAPPER"/>
+
+        <table tableName="user_info">
+            <generatedKey column="id" sqlStatement="JDBC"/>
+        </table>
+    </context>
+</generatorConfiguration>
